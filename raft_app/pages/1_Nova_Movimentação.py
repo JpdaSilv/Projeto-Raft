@@ -1,13 +1,14 @@
 import streamlit as st
+from styles import aplicar_estilo, cabecalho, secao
 from datetime import date
 from db_utils import (
     carregar_produtos, carregar_bobinas_fisicas, carregar_componentes,
     derivar_data, execute,
 )
 
-st.set_page_config(page_title="Nova Movimentação", page_icon="📝", layout="wide")
-st.title("📝 Nova Movimentação")
-st.caption("Um registro por evento de produção — igual a uma linha nova na aba Movimentações.")
+st.set_page_config(page_title="Nova Movimentação • Raft", page_icon="📝", layout="wide")
+aplicar_estilo()
+cabecalho("Nova Movimentação", "Um registro por evento de produção.", "RAFT • PRODUÇÃO")
 
 produtos = carregar_produtos()
 bobinas = carregar_bobinas_fisicas()
@@ -48,7 +49,7 @@ with st.form("form_movimentacao", clear_on_submit=True):
             ),
         )
 
-    st.markdown("**Consumos**")
+    st.markdown('<div class="section-title">Consumos</div><div class="section-sub">Materiais consumidos durante o evento de produção.</div>', unsafe_allow_html=True)
     d1, d2, d3, d4 = st.columns(4)
     cons_bob = d1.number_input("Cons. Bobina", min_value=0.0, step=0.1)
     cons_comp = d2.number_input("Cons. Componente", min_value=0.0, step=0.1)

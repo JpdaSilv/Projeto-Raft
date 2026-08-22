@@ -59,12 +59,48 @@ dim_produto           dim_bobina_spec          dim_componente
 ```bash
 cd raft_app
 pip install -r requirements.txt
+
+# 1. Cadastre pelo menos um usuário ADMINISTRADOR (só precisa fazer isso uma vez)
+python db/gerenciar_usuarios.py criar --username joao --senha "SuaSenhaForte" --nome "João Pedro" --perfil ADMINISTRADOR
+python db/gerenciar_usuarios.py listar   # conferir
+
+# 2. Rodar o app
 streamlit run app.py
+# (Windows sem PATH configurado: python -m streamlit run app.py)
 ```
 
-Abre em `http://localhost:8501`. Para acessar do celular na mesma rede
-Wi-Fi, use o **Network URL** que o Streamlit mostra no terminal
-(algo como `http://192.168.x.x:8501`).
+Usuários de teste já cadastrados no `raft_app.db` deste zip (troque as senhas antes de usar de verdade):
+
+| Usuário | Senha | Perfil |
+|---|---|---|
+| `joao` | `raft2026` | ADMINISTRADOR |
+| `operador1` | `producao123` | OPERADOR |
+| `pcp1` | `pcp123` | PCP |
+
+## O que mudou na Fase 1 (RAFT V2)
+
+Baseado no documento `RAFT_V2_Prompt_Mestre.md` — implementei só o que dá pra terminar e
+testar em dias, não o sistema inteiro (React/Vite, WMS, importação TOTVS, etc. ficam
+pra fases futuras, quando fizer sentido).
+
+- **Login por usuário/senha com 4 perfis** (`auth.py`, tabela `usuarios`). Senha nunca
+  fica em texto puro — só o hash SHA-256.
+- **Apontamento Operacional** (`pages/1_Apontamento_Operacional.py`) substitui a antiga
+  "Nova Movimentação". Segue a seção 7 do documento à risca: o operador só informa
+  Pedido, Tipo, Lote e Metragem Produzida — nunca OP, código da bobina ou peso
+  específico. Cliente/Produto/Metragem do pedido vêm automáticos de `dim_pedido`
+  (978 linhas migradas da aba Pedidos). Consumo = peso específico × metragem, calculado
+  em tempo real antes mesmo de enviar.
+- **Status do apontamento** (`PENDENTE` → `VALIDADO`/`DEVOLVIDO`), com `validado_por` e
+  `validado_em` gravados — rastreabilidade mínima da seção 2 e 13.
+- **Validação PCP** (`pages/4_Validação_PCP.py`), acessível só a perfis PCP/ADMINISTRADOR:
+  lista apontamentos pendentes, valida ou devolve com motivo.
+- **Consultar e Editar** agora é restrito a PCP/ALMOXARIFADO/ADMINISTRADOR — operador não
+  edita/apaga lançamento (matriz de permissões da seção 104 do documento).
+
+**Ainda não implementado** (fica pro backlog, conforme combinamos): Kardex da bobina,
+WMS visual, importação TOTVS com snapshot, auditoria campo-a-campo, PDF/QR Code,
+dashboard gerencial com KPIs avançados, e a reescrita em React/Vite.
 
 ## Como integrar ao Projeto_BI_Raft existente
 

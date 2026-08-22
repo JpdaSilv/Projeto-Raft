@@ -68,3 +68,17 @@ def derivar_data(data) -> dict:
         "trimestre": trimestre_de(data.month),
         "mes": MESES_PT[data.month],
     }
+
+
+def log_auditoria(tabela: str, registro_id: int, acao: str, usuario: str,
+                   campo: str = None, valor_anterior=None, valor_novo=None, motivo: str = None):
+    """Registra uma ação crítica no audit_log. Chame ANTES de apagar um registro
+    (senão o 'valor_anterior' já era) e DEPOIS de validar/editar."""
+    execute(
+        """INSERT INTO audit_log (tabela, registro_id, acao, campo, valor_anterior, valor_novo, motivo, usuario)
+           VALUES (?,?,?,?,?,?,?,?)""",
+        (tabela, registro_id, acao, campo,
+         None if valor_anterior is None else str(valor_anterior),
+         None if valor_novo is None else str(valor_novo),
+         motivo, usuario),
+    )
